@@ -1,23 +1,35 @@
+//JS Docs : ts check 하면 자바스크립트 파일을 타입스크립트가 적용된것과 같은 효과를 줄 수 있다. ts 랭귀지서버가 돈다.
+//JS Docs 사용하는 이유 : ts 로 바로 들어가기 전 try 해보는 용도로 쓰기 좋지만 ts 만큼 코드적 효율이 좋진 않다.
+//ts 의 가장 큰장점 : 실무에서도 api interface 정의하는게 가장 큰장점으로 볼 수 있다. 백엔드와의 인터페이스 약속규정에 있어 중요.
+
+//@ts-check
+
 // utils
-function $(selector) {
+function $(selector:string) {
   return document.querySelector(selector);
 }
-function getUnixTimestamp(date) {
+function getUnixTimestamp(date:any) {
   return new Date(date).getTime();
 }
 
 // DOM
-const confirmedTotal = $('.confirmed-total');
-const deathsTotal = $('.deaths');
-const recoveredTotal = $('.recovered');
-const lastUpdatedTime = $('.last-updated-time');
+// Element > HTMLElement > HTMLParagraphElement(HTMLSpanElement 등의 구체화된 태그들.) 순으로 내려가는 형태.
+var a : Element | HTMLElement | HTMLParagraphElement;
+//HTML 에서 span 태그로 되어있기 때문에 HTMLSpanElement 로 타입단언을 해준다. -> 반복된다면 제네릭같이, 유틸함수로 만들수도있음.
+const confirmedTotal = $('.confirmed-total') as HTMLSpanElement;
+//innerText/innerHTML Element 없다는 오류 나타날 시 달러표시로 접근해서 나타난 오류이다. 
+//오른쪽의 결과의 타입이 어떤것인지 판단해줘야함.  -> 타입단언 as -> 진짜 이해 하나도안감.
+//HTML 에서 p 태그이기 때문에 HTMLParagraphElement를 적용해준다. 
+const deathsTotal= $('.deaths') as HTMLParagraphElement ;
+const recoveredTotal = $('.recovered') as HTMLParagraphElement ;
+const lastUpdatedTime = $('.last-updated-time') as HTMLParagraphElement ;
 const rankList = $('.rank-list');
 const deathsList = $('.deaths-list');
 const recoveredList = $('.recovered-list');
 const deathSpinner = createSpinnerElement('deaths-spinner');
 const recoveredSpinner = createSpinnerElement('recovered-spinner');
 
-function createSpinnerElement(id) {
+function createSpinnerElement(id:any) {
   const wrapperDiv = document.createElement('div');
   wrapperDiv.setAttribute('id', id);
   wrapperDiv.setAttribute(
@@ -36,13 +48,38 @@ function createSpinnerElement(id) {
 let isDeathLoading = false;
 let isRecoveredLoading = false;
 
+//typedef : 타입스크립트의 타입별칭같은 역할
+/**
+ * @typedef {object} CovidSummary
+ * @property {Array<object>} Country
+ */
+
 // api
+// 타입스크립트라면 Promise에 제네릭타입으로 사용가능하지만 js Doc 은 다음과 같이 사용가능하다.
+// cmd + d 치면 사용할코드로 이동! 
+/** 
+ * @returns {Promise<CovidSummary>}
+*/
+
+//!axios, chart 라이브러리에 대한 타입지정.
 function fetchCovidSummary() {
   const url = 'https://api.covid19api.com/summary';
   return axios.get(url);
 }
+// params enum -> 특정값의 집합. interface 로 안한이유??
+enum CovidStatus {
+  Confirmed = 'confirmed',
+  Recovered = 'recovered',
+  Deaths = 'deaths'
+}
 
-function fetchCountryInfo(countryCode, status) {
+// interface CovidStatus {
+//   Confirmed : number,
+//   Recovered : number,
+//   Deaths : number,
+// }
+//api 형태 :: https://api.covid19api.com/live/country/south-africa/status/confirmed
+function fetchCountryInfo(countryCode:string, status:CovidStatus) {
   // params: confirmed, recovered, deaths
   const url = `https://api.covid19api.com/country/${countryCode}/status/${status}`;
   return axios.get(url);
@@ -59,7 +96,7 @@ function initEvents() {
   rankList.addEventListener('click', handleListClick);
 }
 
-async function handleListClick(event) {
+async function handleListClick(event:any) {
   let selectedId;
   if (
     event.target instanceof HTMLParagraphElement ||
@@ -77,14 +114,14 @@ async function handleListClick(event) {
   clearRecoveredList();
   startLoadingAnimation();
   isDeathLoading = true;
-  const { data: deathResponse } = await fetchCountryInfo(selectedId, 'deaths');
+  const { data: deathResponse } = await fetchCountryInfo(selectedId,CovidStatus.Deaths);
   const { data: recoveredResponse } = await fetchCountryInfo(
     selectedId,
-    'recovered',
+    CovidStatus.Recovered,
   );
   const { data: confirmedResponse } = await fetchCountryInfo(
     selectedId,
-    'confirmed',
+    CovidStatus.Confirmed,
   );
   endLoadingAnimation();
   setDeathsList(deathResponse);
@@ -95,9 +132,9 @@ async function handleListClick(event) {
   isDeathLoading = false;
 }
 
-function setDeathsList(data) {
+function setDeathsList(data:any) {
   const sorted = data.sort(
-    (a, b) => getUnixTimestamp(b.Date) - getUnixTimestamp(a.Date),
+    (a:any, b:any) => getUnixTimestamp(b.Date) - getUnixTimestamp(a.Date),
   );
   sorted.forEach(value => {
     const li = document.createElement('li');
@@ -117,13 +154,13 @@ function clearDeathList() {
   deathsList.innerHTML = null;
 }
 
-function setTotalDeathsByCountry(data) {
+function setTotalDeathsByCountry(data:any) {
   deathsTotal.innerText = data[0].Cases;
 }
 
-function setRecoveredList(data) {
+function setRecoveredList(data:any) {
   const sorted = data.sort(
-    (a, b) => getUnixTimestamp(b.Date) - getUnixTimestamp(a.Date),
+    (a:any, b:any) => getUnixTimestamp(b.Date) - getUnixTimestamp(a.Date),
   );
   sorted.forEach(value => {
     const li = document.createElement('li');
@@ -143,7 +180,7 @@ function clearRecoveredList() {
   recoveredList.innerHTML = null;
 }
 
-function setTotalRecoveredByCountry(data) {
+function setTotalRecoveredByCountry(data:any) {
   recoveredTotal.innerText = data[0].Cases;
 }
 
@@ -166,7 +203,7 @@ async function setupData() {
   setLastUpdatedTimestamp(data);
 }
 
-function renderChart(data, labels) {
+function renderChart(data:any, labels:any) {
   var ctx = $('#lineChart').getContext('2d');
   Chart.defaults.global.defaultFontColor = '#f5eaea';
   Chart.defaults.global.defaultFontFamily = 'Exo 2';
@@ -187,7 +224,7 @@ function renderChart(data, labels) {
   });
 }
 
-function setChartData(data) {
+function setChartData(data:any) {
   const chartData = data.slice(-14).map(value => value.Cases);
   const chartLabel = data
     .slice(-14)
@@ -195,30 +232,30 @@ function setChartData(data) {
   renderChart(chartData, chartLabel);
 }
 
-function setTotalConfirmedNumber(data) {
+function setTotalConfirmedNumber(data:any) {
   confirmedTotal.innerText = data.Countries.reduce(
-    (total, current) => (total += current.TotalConfirmed),
+    (total:any, current:any) => (total += current.TotalConfirmed),
     0,
   );
 }
 
-function setTotalDeathsByWorld(data) {
+function setTotalDeathsByWorld(data:any) {
   deathsTotal.innerText = data.Countries.reduce(
-    (total, current) => (total += current.TotalDeaths),
+    (total:any, current:any) => (total += current.TotalDeaths),
     0,
   );
 }
 
-function setTotalRecoveredByWorld(data) {
+function setTotalRecoveredByWorld(data:any) {
   recoveredTotal.innerText = data.Countries.reduce(
-    (total, current) => (total += current.TotalRecovered),
+    (total:any, current:any) => (total += current.TotalRecovered),
     0,
   );
 }
 
-function setCountryRanksByConfirmedCases(data) {
+function setCountryRanksByConfirmedCases(data:any) {
   const sorted = data.Countries.sort(
-    (a, b) => b.TotalConfirmed - a.TotalConfirmed,
+    (a:any, b:any) => b.TotalConfirmed - a.TotalConfirmed,
   );
   sorted.forEach(value => {
     const li = document.createElement('li');
@@ -236,7 +273,7 @@ function setCountryRanksByConfirmedCases(data) {
   });
 }
 
-function setLastUpdatedTimestamp(data) {
+function setLastUpdatedTimestamp(data:any) {
   lastUpdatedTime.innerText = new Date(data.Date).toLocaleString();
 }
 
