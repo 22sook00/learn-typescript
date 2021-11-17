@@ -31,3 +31,9 @@
 - [존스 홉킨스 코로나 현황](https://www.arcgis.com/apps/opsdashboard/index.html#/bda7594740fd40299423467b48e9ecf6)
 - [Postman API](https://documenter.getpostman.com/view/10808728/SzS8rjbc?version=latest#27454960-ea1c-4b91-a0b6-0468bb4e6712)
 - [Type Vue without Typescript](https://blog.usejournal.com/type-vue-without-typescript-b2b49210f0b)
+
+## dependencies vs devDependencies
+- dependencies : application logic 에 직접적으로 관여하는 (React,vue,jquery,chart library)
+- devDependencies : 개발할때만 사용하는 (eslint, prettier, babel, typescript) 도구들이 해당. 
+(배포할때 포함되지 않는라이브러리)
+* 최종 빌드는 dependencies에 있는 내용만 배포하면된다. 
